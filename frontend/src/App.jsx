@@ -20,7 +20,8 @@ function App() {
   }
 
   useEffect(() => {
-    const newSocket = io('http://localhost:8080')
+    const newSocket = io('https://chatwebapp-9gae.onrender.com/')
+    // http://localhost:8080/
     setSocket(newSocket)
     newSocket.on('message', (data) => {
       const updatedMessages = [...messages, data]
