@@ -47,7 +47,7 @@ function App() {
   console.log(messages)
 
   return (
-    <div className="h-screen flex flex-col bg-gray-100">
+    <div className="h-svh flex flex-col bg-gray-100">
       {!isUsernameSet ? (
         <div className="flex flex-col justify-center items-center h-full">
           <input
