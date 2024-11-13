@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react"
 import { useMainContext } from "./contexts/MainContext"
 import { useNavigate } from "react-router-dom"
-import { GiHamburgerMenu } from "react-icons/gi"
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faBars } from '@fortawesome/free-solid-svg-icons'
 
 const DropdownMenu = () => {
     const [dropdownOpen, setDropdownOpen] = useState(false)
@@ -41,7 +42,7 @@ const DropdownMenu = () => {
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="hover:text-white text-2xl px-4 py-1 rounded hover:bg-blue-600 text-black"
             >
-                <GiHamburgerMenu />
+                <FontAwesomeIcon icon={faBars} className="inline text-gray-500" />
             </button>
 
             {dropdownOpen && (
