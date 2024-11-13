@@ -12,10 +12,8 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 
 client = MongoClient(
     'mongodb+srv://nagesh:nagesh2245@mywebsites.btvk61i.mongodb.net/',
-    connectTimeoutMS = 3000,
-    socketTimeoutMS=None,
-    serverSelectionTimeoutMS=5000,
-    appname="CHATAPP"
+    connectTimeoutMS = 5000,
+    socketTimeoutMS=None
 )
 
 DB = client['CHATAPP']
