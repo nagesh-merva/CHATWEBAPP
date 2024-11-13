@@ -104,7 +104,7 @@ function Dashboard() {
     console.log(pendingMessages)
 
     useEffect(() => {
-        const newSocket = io("http://localhost:8080/", {
+        const newSocket = io("https://chatwebapp-9gae.onrender.com/", {
             query: {
                 username: Username
             }
