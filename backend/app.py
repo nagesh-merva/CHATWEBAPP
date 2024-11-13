@@ -11,7 +11,7 @@ CORS(app,cors_allowed_origins="*", supports_credentials=True, allow_headers="*",
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 client = MongoClient(
-    'mongodb+srv://nagesh:nagesh2245@mywebsites.btvk61i.mongodb.net/',
+    'mongodb+srv://crob0008:GYfLnhxdJgeiOTPO@chefsbhojan.oxsu9gm.mongodb.net/',
     connectTimeoutMS = 10000,
     socketTimeoutMS=10000
 )

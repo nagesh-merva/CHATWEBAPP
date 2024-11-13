@@ -18,6 +18,13 @@ function Dashboard() {
     const chatContainerRef = useRef(null)
 
     useEffect(() => {
+        if (!Username) {
+            navigate('/')
+        }
+    }, [Username, navigate])
+
+
+    useEffect(() => {
         if (chatContainerRef.current) {
             chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
         }
@@ -150,92 +157,88 @@ function Dashboard() {
 
     return (
         <div className="h-screen flex flex-col bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300">
-            {!Username ? (
-                navigate('/')
-            ) : (
-                <>
-                    <nav className="bg-white shadow-md p-4 flex items-center justify-between">
-                        <h2 className="text-xl font-semibold text-gray-700">{Username}</h2>
-                        <DropdownMenu />
-                    </nav>
+            <>
+                <nav className="bg-white shadow-md p-4 flex items-center justify-between">
+                    <h2 className="text-xl font-semibold text-gray-700">{Username}</h2>
+                    <DropdownMenu />
+                </nav>
 
-                    <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4">
-                        {Object.keys(groupedMessages)
-                            .reverse()
-                            .map((date, dateIndex) => (
-                                <div key={dateIndex} className="space-y-1">
-                                    <div className="text-center my-4 text-gray-500 text-xs font-medium">
-                                        {date}
-                                    </div>
-                                    {groupedMessages[date]
-                                        .map((message, messageIndex) => (
+                <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4">
+                    {Object.keys(groupedMessages)
+                        .reverse()
+                        .map((date, dateIndex) => (
+                            <div key={dateIndex} className="space-y-1">
+                                <div className="text-center my-4 text-gray-500 text-xs font-medium">
+                                    {date}
+                                </div>
+                                {groupedMessages[date]
+                                    .map((message, messageIndex) => (
+                                        <div
+                                            key={messageIndex}
+                                            className={`flex ${message.sender === Username
+                                                ? "justify-end"
+                                                : "justify-start"
+                                                }`}
+                                        >
                                             <div
-                                                key={messageIndex}
-                                                className={`flex ${message.sender === Username
-                                                    ? "justify-end"
-                                                    : "justify-start"
+                                                className={`p-3 max-w-sm rounded-xl shadow-md ${message.sender === Username
+                                                    ? "bg-blue-500 text-white"
+                                                    : "bg-white text-gray-800"
                                                     }`}
                                             >
-                                                <div
-                                                    className={`p-3 max-w-sm rounded-xl shadow-md ${message.sender === Username
-                                                        ? "bg-blue-500 text-white"
-                                                        : "bg-white text-gray-800"
-                                                        }`}
-                                                >
-                                                    <p className="text-xs text-blue-300">
-                                                        {message.sender === Username ? "You" : message.sender}
-                                                    </p>
-                                                    <p className="text-sm">{message.text}</p>
-                                                    <div className="text-right text-[9px] text-gray-400 mt-1">
-                                                        {formatTime(message.timestamp)}
-                                                        {message.sender === Username && (
-                                                            <span className="ml-1">
-                                                                {message.status === "sending" && (
-                                                                    <FontAwesomeIcon icon={faCheck} className="inline text-gray-400" />
-                                                                )}
-                                                                {message.status === "received" && (
-                                                                    <FontAwesomeIcon icon={faCheck} className="inline text-green-400" />
-                                                                )}
-                                                                {message.status === "delivered" && (
-                                                                    <FontAwesomeIcon icon={faCheckDouble} className="inline text-green-500" />
-                                                                )}
-                                                            </span>
-                                                        )}
-                                                    </div>
+                                                <p className="text-xs text-blue-300">
+                                                    {message.sender === Username ? "You" : message.sender}
+                                                </p>
+                                                <p className="text-sm">{message.text}</p>
+                                                <div className="text-right text-[9px] text-gray-400 mt-1">
+                                                    {formatTime(message.timestamp)}
+                                                    {message.sender === Username && (
+                                                        <span className="ml-1">
+                                                            {message.status === "sending" && (
+                                                                <FontAwesomeIcon icon={faCheck} className="inline text-gray-400" />
+                                                            )}
+                                                            {message.status === "received" && (
+                                                                <FontAwesomeIcon icon={faCheck} className="inline text-green-400" />
+                                                            )}
+                                                            {message.status === "delivered" && (
+                                                                <FontAwesomeIcon icon={faCheckDouble} className="inline text-green-500" />
+                                                            )}
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
-                                        ))}
-                                </div>
-                            ))}
-                    </div>
-                    <div className="bg-white p-4 flex items-center space-x-2 border-t border-gray-300">
-                        <button
-                            onClick={() => setShowEmojiPicker((prev) => !prev)}
-                            className="text-gray-600 hover:text-gray-800"
-                        >
-                            <FontAwesomeIcon icon={faSmile} className="inline text-gray-500" />
-                        </button>
-                        {showEmojiPicker && (
-                            <div className="absolute bottom-16 left-4 z-10">
-                                <EmojiPicker onEmojiClick={handleEmojiClick} />
+                                        </div>
+                                    ))}
                             </div>
-                        )}
-                        <input
-                            type="text"
-                            value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
-                            placeholder="Type a message..."
-                            className="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        />
-                        <button
-                            onClick={handleSendMessage}
-                            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg"
-                        >
-                            Send
-                        </button>
-                    </div>
-                </>
-            )}
+                        ))}
+                </div>
+                <div className="bg-white p-4 flex items-center space-x-2 border-t border-gray-300">
+                    <button
+                        onClick={() => setShowEmojiPicker((prev) => !prev)}
+                        className="text-gray-600 hover:text-gray-800"
+                    >
+                        <FontAwesomeIcon icon={faSmile} className="inline text-gray-500" />
+                    </button>
+                    {showEmojiPicker && (
+                        <div className="absolute bottom-16 left-4 z-10">
+                            <EmojiPicker onEmojiClick={handleEmojiClick} />
+                        </div>
+                    )}
+                    <input
+                        type="text"
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        placeholder="Type a message..."
+                        className="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    />
+                    <button
+                        onClick={handleSendMessage}
+                        className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg"
+                    >
+                        Send
+                    </button>
+                </div>
+            </>
         </div>
     )
 }
