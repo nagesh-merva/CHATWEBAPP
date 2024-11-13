@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react"
-import { RiCheckDoubleFill, RiCheckFill } from "react-icons/ri"
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCheckDouble, faCheck } from '@fortawesome/free-solid-svg-icons'
 import { io } from "socket.io-client"
 import { BsEmojiSmile } from "react-icons/bs"
 import EmojiPicker from "emoji-picker-react"
@@ -191,13 +192,13 @@ function Dashboard() {
                                                         {message.sender === Username && (
                                                             <span className="ml-1">
                                                                 {message.status === "sending" && (
-                                                                    <RiCheckFill className="inline text-gray-400" />
+                                                                    <FontAwesomeIcon icon={faCheck} className="inline text-gray-400" />
                                                                 )}
                                                                 {message.status === "received" && (
-                                                                    <RiCheckFill className="inline text-green-400" />
+                                                                    <FontAwesomeIcon icon={faCheck} className="inline text-green-400" />
                                                                 )}
                                                                 {message.status === "delivered" && (
-                                                                    <RiCheckDoubleFill className="inline text-green-500" />
+                                                                    <FontAwesomeIcon icon={faCheckDouble} className="inline text-green-500" />
                                                                 )}
                                                             </span>
                                                         )}
