@@ -1,59 +1,132 @@
 from datetime import datetime
-from flask import Flask
+from flask import Flask, jsonify, request
 from flask_socketio import SocketIO, send, emit
+from flask_cors import CORS
 from pymongo import MongoClient
 
 # Initialize Flask and SocketIO
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
+CORS(app,cors_allowed_origins="*", supports_credentials=True, allow_headers="*", origins="*", methods=["OPTIONS", "POST"])
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 client = MongoClient(
     'mongodb+srv://nagesh:nagesh2245@mywebsites.btvk61i.mongodb.net/',
     connectTimeoutMS = 3000,
-    socketTimeoutMS=None
+    socketTimeoutMS=None,
+    serverSelectionTimeoutMS=5000,
+    appname="CHATAPP"
 )
 
 DB = client['CHATAPP']
 MESSAGE_COLC = DB['MESSAGES-DATABASE']
+User_COLC = DB['Users']
+ActiveUsers_COLC = DB['ActiveUsers'] 
+
+@app.route('/api/register', methods=['POST'])
+def register_newuser():
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'success', 'message': 'CORS preflight request handled successfully'}), 200
+    
+    data = request.json
+    username = data['username']
+    username = username.lower()
+    email = data['email']
+    password = data['password']
+    
+    Userexists = User_COLC.find_one({'username' :username})
+    if Userexists:
+        return {"message" : "user already exists, please try some other username"}, 400
+    else:
+        User_COLC.insert_one({"username":username, "password":password, "email":email})
+    return {"message": "User  registered successfully"}, 200
+
+@socketio.on('login_request')
+def handle_login(data):
+    username = data['username']
+    username = username.lower()
+    password = data['password']
+    client_id = request.sid
+    
+    user = User_COLC.find_one({'username': username})
+    
+    if user and (user['password'] == password):
+        active_user = ActiveUsers_COLC.find_one({"username": username})
+        if not active_user:
+            ActiveUsers_COLC.insert_one({
+                "ClientId": client_id,
+                "username": username,
+                "connection_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            })
+        socketio.emit('login_response', {'success': True, 'message': 'Login successful!'})
+    else:
+        socketio.emit('login_response', {'success': False, 'message': 'Invalid username or password.'})
 
 @socketio.on('connect')
 def handle_connect():
-    print("Client connected")
-    
+    username = request.args.get('username')
+    client_id = request.sid
+    print(f"Client {client_id} connected")
+
     messages = list(MESSAGE_COLC.find().sort('_id', -1).limit(100))
+    if username:
+        print(f"User {username} connected with session ID {client_id}")
+
+        # Add to ActiveUsers collection if not already present
+        active_user = ActiveUsers_COLC.find_one({"username":username})
+        if not active_user:
+            ActiveUsers_COLC.insert_one({
+                "ClientId": client_id,
+                "username": username,
+                "connection_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            })
     
-    formatted_messages = [{'text': message['text'], 'sender': message['sender'], 'status':'delivered' ,'timestamp': message['timestamp']} for message in messages]
+    formatted_messages = [{'id': message['id'],'text': message['text'], 'sender': message['sender'], 'status':'delivered' ,'timestamp': message['timestamp']} for message in messages]
     
     emit('allmsgs', formatted_messages)
-
-# Handle when a new user joins
-@socketio.on('user_joined')
-def handle_user_joined(username):
-    join_message = f"{username} has joined the chat"
-    print(join_message)
-    send({'text': join_message, 'sender': 'Server','timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")}, broadcast=True)
     
 # Handle incoming messages from the client
 @socketio.on('message')
 def handle_message(data):
     message_data = {
+        'id' : data['id'],
         'text': data['text'],
         'sender': data['sender'],
         'status' : data['status'],
         'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     }
+    Dupmsg = MESSAGE_COLC.find_one({"id" : message_data['id']})
+    if Dupmsg:
+        return
     MESSAGE_COLC.insert_one(message_data)
     print(f"Message received: {data}")
     # Acknowledge receipt of the message to the sender
-    emit('message', {'text': data['text'], 'sender': data['sender'], 'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")}, broadcast=True)
+    emit('message', {'id': data['id'],'text': data['text'], 'sender': data['sender'], 'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")}, broadcast=True)
     # Send acknowledgment to the sender only
-    emit('message_received', {'text': data['text'], 'sender': data['sender'], 'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")}, callback=lambda: print("Ack sent"))
+    emit('message_received', {'id': data['id'],'text': data['text'], 'sender': data['sender'], 'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")}, callback=lambda: print("Ack sent"))
 
 # Handle client disconnections
 @socketio.on('disconnect')
 def handle_disconnect():
-    print("Client disconnected")
+    client_id = request.sid
+    print(f"Client {client_id} disconnected.")
+    try:
+        user = ActiveUsers_COLC.find_one_and_delete({"ClientId": client_id})
+        if user:
+            print(f"Removed {user['username']} from active users.")
+        else:
+            print(f"No active user found for ClientId: {client_id}.")
+    except Exception as e:
+        print(f"Error while removing active user: {str(e)}")
+
+        
+@app.route('/api/active_users', methods=['GET'])
+def get_active_users():
+    try:
+        active_users = list(ActiveUsers_COLC.find({}, {"_id": 0, "username": 1}))
+        return jsonify({"activeUsers": active_users}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     # Use eventlet for handling multiple clients

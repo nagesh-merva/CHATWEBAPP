@@ -1,10 +1,19 @@
+import React from 'react'
+import { Route, Routes } from 'react-router-dom'
 import { ContextProvider } from './contexts/MainContext'
-import Dashboard from './contexts/DashBoard'
+import Dashboard from './DashBoard'
+import LoginPage from './login'
+import RegisterPage from './register'
+
 function App() {
 
   return (
     < ContextProvider>
-      <Dashboard />
+      <Routes>
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/register" element={<RegisterPage />} />
+      </Routes>
     </ContextProvider>
   )
 }

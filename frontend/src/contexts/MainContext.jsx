@@ -15,6 +15,11 @@ export const ContextProvider = ({ children }) => {
         return StoredChats !== null ? JSON.parse(StoredChats) : []
     })
 
+    const [pendingMessages, setPendingMessages] = useState(() => {
+        const StoredPendingMessages = localStorage.getItem('pendingMessages')
+        return StoredPendingMessages !== null ? JSON.parse(StoredPendingMessages) : []
+    })
+
     useEffect(() => {
         sessionStorage.setItem('Chats', JSON.stringify(Chats))
     }, [Chats])
@@ -23,8 +28,22 @@ export const ContextProvider = ({ children }) => {
         sessionStorage.setItem('Username', Username)
     }, [Username])
 
+    useEffect(() => {
+        localStorage.setItem('pendingMessages', JSON.stringify(pendingMessages))
+    }, [pendingMessages])
+
+    const addPendingMessage = (message) => {
+        setPendingMessages((prev) => [...prev, message])
+    }
+
+    const removePendingMessage = (messageText) => {
+        setPendingMessages((prevMessages) =>
+            prevMessages.filter((msg) => msg.text !== messageText)
+        )
+    }
+
     return (
-        <MainContext.Provider value={{ Username, setUsername, Chats, setChats }}>
+        <MainContext.Provider value={{ Username, setUsername, Chats, setChats, pendingMessages, addPendingMessage, removePendingMessage }}>
             {children}
         </MainContext.Provider>
     )
