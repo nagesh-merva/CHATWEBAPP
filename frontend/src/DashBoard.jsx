@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from "react"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCheckDouble, faCheck } from '@fortawesome/free-solid-svg-icons'
+import { faCheckDouble, faCheck, faSmile } from '@fortawesome/free-solid-svg-icons'
 import { io } from "socket.io-client"
-import { BsEmojiSmile } from "react-icons/bs"
 import EmojiPicker from "emoji-picker-react"
 import { useMainContext } from "./contexts/MainContext"
 import { useNavigate } from "react-router-dom"
@@ -214,7 +213,7 @@ function Dashboard() {
                             onClick={() => setShowEmojiPicker((prev) => !prev)}
                             className="text-gray-600 hover:text-gray-800"
                         >
-                            <BsEmojiSmile size={24} />
+                            <FontAwesomeIcon icon={faSmile} className="inline text-gray-500" />
                         </button>
                         {showEmojiPicker && (
                             <div className="absolute bottom-16 left-4 z-10">
