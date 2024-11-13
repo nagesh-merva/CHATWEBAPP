@@ -4,3 +4,4 @@ Flask-SocketIO==5.3.6
 Flask==3.0.2
 gunicorn==21.2.0
 eventlet==0.33.3
+pymongo==4.4.0
