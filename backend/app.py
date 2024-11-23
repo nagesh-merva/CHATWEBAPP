@@ -1,8 +1,10 @@
 from datetime import datetime
 from flask import Flask, jsonify, request
 from flask_socketio import SocketIO, send, emit
+from together import Together
 from flask_cors import CORS
 from pymongo import MongoClient
+import os
 
 # Initialize Flask and SocketIO
 app = Flask(__name__)
@@ -10,10 +12,12 @@ app.config['SECRET_KEY'] = 'your_secret_key'
 CORS(app,cors_allowed_origins="*", supports_credentials=True, allow_headers="*", origins="*", methods=["OPTIONS", "POST"])
 socketio = SocketIO(app, cors_allowed_origins="*")
 
+AIclient = Together(api_key="f8c8fa4fd70a01169d90a949a82246470d2d0e5620e80f026b4ea7453764598e")
+
 client = MongoClient(
-    'mongodb+srv://crob0008:GYfLnhxdJgeiOTPO@chefsbhojan.oxsu9gm.mongodb.net/',
-    connectTimeoutMS = 10000,
-    socketTimeoutMS=10000
+    'mongodb+srv://nagesh:nagesh2245@mywebsites.btvk61i.mongodb.net/',
+    connectTimeoutMS = 20000,
+    socketTimeoutMS=20000
 )
 
 DB = client['CHATAPP']
@@ -103,6 +107,42 @@ def handle_message(data):
     # Send acknowledgment to the sender only
     emit('message_received', {'id': data['id'],'text': data['text'], 'sender': data['sender'], 'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")}, callback=lambda: print("Ack sent"))
 
+@socketio.on('aimessage')
+def handle_Aiask(data):
+    message_data = {
+        'id' : data['id'],
+        'text': data['text'],
+        'sender': data['sender'],
+        'status' : data['status'],
+        'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+    Dupmsg = MESSAGE_COLC.find_one({"id" : message_data['id']})
+    if Dupmsg:
+        return
+    
+    if message_data['text']:
+        prompt = message_data['text'] + ". [Please remember to keep your response under 50 words if not as mentioned prior, but the strict limit is 121 words **DO NOT CROSS THIS Limit**]"
+        print(prompt)
+    
+        response = AIclient.chat.completions.create(
+            model="meta-llama/Llama-3-8b-chat-hf",
+            messages=[{"role": "user", "content": f"{prompt}"}],
+        )
+        
+        if response.choices:
+            response_text = response.choices[0].message.content
+        else:
+            response_text = "No response generated"
+
+    message_data['text'] = f"{message_data['text']} \n\n {response_text}"
+
+    MESSAGE_COLC.insert_one(message_data)
+    print(f"Message received: {data}")
+    # Acknowledge receipt of the message to the sender
+    emit('message', {'id': message_data['id'],'text': message_data['text'], 'sender': message_data['sender'], 'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")}, broadcast=True)
+    # Send acknowledgment to the sender only
+    emit('aimessage_received', {'id': message_data['id'],'text': message_data['text'], 'sender': message_data['sender'], 'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")}, callback=lambda: print("Ack sent"))
+
 # Handle client disconnections
 @socketio.on('disconnect')
 def handle_disconnect():
@@ -127,5 +167,5 @@ def get_active_users():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    # Use eventlet for handling multiple clients
-    socketio.run(app, host='0.0.0.0', port=8080, debug=True)
+    port = int(os.environ.get("PORT", 8080))
+    socketio.run(app, host='0.0.0.0', port=port)

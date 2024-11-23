@@ -7,6 +7,7 @@ import { useMainContext } from "./contexts/MainContext"
 import { useNavigate } from "react-router-dom"
 import { v4 as uuidv4 } from 'uuid'
 import DropdownMenu from "./DropDown"
+import { text } from "framer-motion/client"
 
 function Dashboard() {
     const [socket, setSocket] = useState(null);
@@ -39,10 +40,16 @@ function Dashboard() {
         })
     }
 
+    const formatDate = (timestamp) => {
+        return new Date(timestamp)
+            .toLocaleDateString("en-GB", { year: "numeric", month: "2-digit", day: "2-digit" });
+    };
+
+
     const groupMessagesByDate = (messages) => {
         const grouped = {}
         messages.forEach((message) => {
-            const date = new Date(message.timestamp).toLocaleDateString()
+            const date = formatDate(message.timestamp)
             if (!grouped[date]) grouped[date] = []
             grouped[date].push(message)
         })
@@ -97,21 +104,32 @@ function Dashboard() {
         setNewMessage("")
 
         if (socket) {
-            socket.emit("message", messageData, () => {
-                setMessages((prevMessages) =>
-                    prevMessages.map((msg) =>
-                        msg.id === messageData.id ? { ...msg, status: "received" } : msg
+            if (messageData.text.startsWith("@llama")) {
+                socket.emit("aimessage", messageData, () => {
+                    setMessages((prevMessages) =>
+                        prevMessages.map((msg) =>
+                            msg.id === messageData.id ? { ...msg, status: "received" } : msg
+                        )
                     )
-                )
-                removePendingMessage(messageData.text)
-            })
+                    removePendingMessage(messageData.text)
+                })
+            } else {
+                socket.emit("message", messageData, () => {
+                    setMessages((prevMessages) =>
+                        prevMessages.map((msg) =>
+                            msg.id === messageData.id ? { ...msg, status: "received" } : msg
+                        )
+                    )
+                    removePendingMessage(messageData.text)
+                })
+            }
         }
     }
 
     console.log(pendingMessages)
 
     useEffect(() => {
-        const newSocket = io("https://chatwebapp-9gae.onrender.com/", {
+        const newSocket = io("http://localhost:8080/", {
             query: {
                 username: Username
             }
@@ -133,9 +151,23 @@ function Dashboard() {
                 return updatedMessages
             })
         })
-        newSocket.on("message_received", (messageData) => {
+
+        newSocket.on("aimessage_received", (messageData) => {
             removePendingMessage(messageData.text)
+
+            setMessages((prevMessages) => {
+                const messageExists = prevMessages.some((msg) => msg.id === messageData.id)
+
+                if (messageExists) {
+                    return prevMessages.map((msg) =>
+                        msg.id === messageData.id
+                            ? { ...msg, text: messageData.text, status: "delivered" }
+                            : msg
+                    )
+                }
+            })
         })
+
         newSocket.on("allmsgs", (data) => {
             const sortedMessages = data.sort(
                 (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
@@ -165,7 +197,6 @@ function Dashboard() {
 
                 <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4">
                     {Object.keys(groupedMessages)
-                        .reverse()
                         .map((date, dateIndex) => (
                             <div key={dateIndex} className="space-y-1">
                                 <div className="text-center my-4 text-gray-500 text-xs font-medium">

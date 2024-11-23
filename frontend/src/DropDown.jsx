@@ -14,7 +14,7 @@ const DropdownMenu = () => {
     useEffect(() => {
         const fetchActiveUsers = async () => {
             try {
-                const response = await fetch("https://chatwebapp-9gae.onrender.com/api/active_users")
+                const response = await fetch("http://localhost:8080/api/active_users")
                 if (response.ok) {
                     const data = await response.json()
                     setActiveUsers(data.activeUsers || [])

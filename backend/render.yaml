@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: ChatApp-Backend
+    env: python
+    buildCommand: ""
+    startCommand: gunicorn -k eventlet -w 1 app:app
+    plan: free

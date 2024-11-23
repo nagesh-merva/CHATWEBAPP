@@ -31,7 +31,7 @@ function LoginPage() {
     }
 
     useEffect(() => {
-        const newSocket = io("https://chatwebapp-9gae.onrender.com/")
+        const newSocket = io("http://localhost:8080/")
         setSocket(newSocket)
 
         newSocket.on('login_response', (data) => {
@@ -52,7 +52,7 @@ function LoginPage() {
     }, [username])
 
     useEffect(() => {
-        const newSocket = io("https://chatwebapp-9gae.onrender.com/")
+        const newSocket = io("http://localhost:8080/")
         setSocket(newSocket)
 
         return () => {
