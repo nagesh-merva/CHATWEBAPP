@@ -1,3 +1,6 @@
+import gevent.monkey
+gevent.monkey.patch_all()
+
 from datetime import datetime
 from flask import Flask, jsonify, request
 from flask_socketio import SocketIO, send, emit
