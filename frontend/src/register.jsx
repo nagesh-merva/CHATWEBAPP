@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom"
 import RegisterAnimation from "./assets/Register-animation.json"
 import { useMainContext } from "../src/contexts/MainContext"
 import Popup from "./PopUp"
+import Loader from "./Loader"
 
 function RegisterPage() {
     const { setUsername } = useMainContext()
@@ -13,6 +14,7 @@ function RegisterPage() {
     const navigate = useNavigate()
     const [showPopup, setShowPopup] = useState(false)
     const [popupMessage, setPopupMessage] = useState('')
+    const [loading, setLoading] = useState(false)
 
     const triggerPopup = (message) => {
         setPopupMessage(message)
@@ -28,12 +30,13 @@ function RegisterPage() {
     }
 
     const handleRegister = async () => {
+        setLoading(true)
         if (username === "" || password === "" || email === "") {
             triggerPopup("Please fill all the fields")
             return
         }
 
-        const response = await fetch('http://localhost:8080/api/register', {
+        const response = await fetch('https://9j38sz47-3000.inc1.devtunnels.ms/api/register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -44,6 +47,7 @@ function RegisterPage() {
         const result = await response.json()
 
         if (response.ok) {
+            setLoading(false)
             let user = username.toLowerCase()
             setUsername(user)
             triggerPopup("Registration Successful!")

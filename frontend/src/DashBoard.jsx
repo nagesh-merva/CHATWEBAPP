@@ -7,7 +7,6 @@ import { useMainContext } from "./contexts/MainContext"
 import { useNavigate } from "react-router-dom"
 import { v4 as uuidv4 } from 'uuid'
 import DropdownMenu from "./DropDown"
-import { text } from "framer-motion/client"
 
 function Dashboard() {
     const [socket, setSocket] = useState(null);
@@ -129,7 +128,7 @@ function Dashboard() {
     console.log(pendingMessages)
 
     useEffect(() => {
-        const newSocket = io("http://localhost:8080/", {
+        const newSocket = io("https://9j38sz47-3000.inc1.devtunnels.ms/", {
             query: {
                 username: Username
             }

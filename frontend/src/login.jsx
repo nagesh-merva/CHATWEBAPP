@@ -5,6 +5,7 @@ import { io } from "socket.io-client"
 import Lottie from "lottie-react"
 import Login from "./assets/Login-animation.json"
 import Popup from "./PopUp"
+import Loader from "./Loader"
 
 function LoginPage() {
     const { setUsername } = useMainContext()
@@ -14,6 +15,7 @@ function LoginPage() {
     const navigate = useNavigate()
     const [showPopup, setShowPopup] = useState(false)
     const [popupMessage, setPopupMessage] = useState('')
+    const [loading, setLoading] = useState(false)
 
     const onRegisterClick = () => {
         navigate('/register')
@@ -25,17 +27,19 @@ function LoginPage() {
     }
 
     const handleLogin = () => {
+        setLoading(true)
         if (socket) {
             socket.emit("login_request", { username, password })
         }
     }
 
     useEffect(() => {
-        const newSocket = io("http://localhost:8080/")
+        const newSocket = io("https://9j38sz47-3000.inc1.devtunnels.ms/")
         setSocket(newSocket)
 
         newSocket.on('login_response', (data) => {
             if (data.success) {
+                setLoading(false)
                 let user = username.toLowerCase()
                 setUsername(user)
                 navigate('/dashboard')
@@ -52,7 +56,7 @@ function LoginPage() {
     }, [username])
 
     useEffect(() => {
-        const newSocket = io("http://localhost:8080/")
+        const newSocket = io("https://9j38sz47-3000.inc1.devtunnels.ms/")
         setSocket(newSocket)
 
         return () => {
@@ -71,28 +75,30 @@ function LoginPage() {
                         Enter your username to join the chat.
                     </p>
                 </div>
-                <div className="flex flex-col gap-4">
-                    <input
-                        type="text"
-                        value={username}
-                        onChange={(e) => setLocalUsername(e.target.value)}
-                        placeholder="Enter your username"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
-                    />
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Password"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-400 focus:outline-none"
-                    />
-                    <button
-                        onClick={handleLogin}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 ease-in-out"
-                    >
-                        Join Chat
-                    </button>
-                </div>
+                {loading ? (<Loader />) : (
+                    <div className="flex flex-col gap-4">
+                        <input
+                            type="text"
+                            value={username}
+                            onChange={(e) => setLocalUsername(e.target.value)}
+                            placeholder="Enter your username"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                        />
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Password"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-400 focus:outline-none"
+                        />
+                        <button
+                            onClick={handleLogin}
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 ease-in-out"
+                        >
+                            Join Chat
+                        </button>
+                    </div>
+                )}
                 <p className="text-sm text-center text-gray-500 mt-6">
                     New here?{" "}
                     <button onClick={onRegisterClick} className="text-blue-500 hover:underline">

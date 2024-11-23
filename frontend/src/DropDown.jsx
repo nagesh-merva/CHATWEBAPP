@@ -14,7 +14,7 @@ const DropdownMenu = () => {
     useEffect(() => {
         const fetchActiveUsers = async () => {
             try {
-                const response = await fetch("http://localhost:8080/api/active_users")
+                const response = await fetch("https://9j38sz47-3000.inc1.devtunnels.ms/api/active_users")
                 if (response.ok) {
                     const data = await response.json()
                     setActiveUsers(data.activeUsers || [])
